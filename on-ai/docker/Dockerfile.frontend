@@ -1,37 +1,26 @@
-FROM node:20-alpine AS deps
-
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-
-# Build stage
+# syntax=docker/dockerfile:1
 FROM node:20-alpine AS builder
 
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# Production stage
+# ── Production image ──────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
-
-WORKDIR /app
-
+WORKDIR /app/frontend
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/frontend/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/frontend/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/frontend/.next/static ./.next/static
 
 USER nextjs
-
 EXPOSE 3000
-
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
 CMD ["node", "server.js"]

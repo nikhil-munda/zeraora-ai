@@ -1,41 +1,46 @@
 import { getToken } from './auth';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-interface ApiResponse<T = unknown> {
-  success: boolean;
-  message?: string;
-  data?: T;
+interface RequestOptions extends RequestInit {
+  skipAuth?: boolean;
 }
 
-async function apiFetch<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
-  const token = getToken();
+class ApiError extends Error {
+  statusCode: number;
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.statusCode = statusCode;
+    this.name = 'ApiError';
+  }
+}
 
-  const headers: HeadersInit = {
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { skipAuth = false, headers: extraHeaders, ...rest } = options;
+
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
+    ...(extraHeaders as Record<string, string>),
   };
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.message || `HTTP ${res.status}`);
+  if (!skipAuth) {
+    const token = getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
   }
 
-  return data;
+  const res = await fetch(`${API_URL}${path}`, { headers, ...rest });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(error.message || 'An error occurred', res.status);
+  }
+
+  return res.json() as Promise<T>;
 }
 
-// ─── Auth API ─────────────────────────────────────────────────────────────────
-
+// ─── Auth endpoints ────────────────────────────────────────────────────────
 export interface RegisterPayload {
   email: string;
   password: string;
@@ -46,30 +51,41 @@ export interface LoginPayload {
   password: string;
 }
 
-export interface UserData {
-  _id: string;
-  email: string;
-  role: string;
-  createdAt: string;
-}
-
-export interface LoginData {
+export interface AuthResponse {
   token: string;
-  user: UserData;
+  user: {
+    _id: string;
+    email: string;
+    role: string;
+    createdAt: string;
+  };
 }
 
-export const authApi = {
-  register: (payload: RegisterPayload) =>
-    apiFetch<{ user: UserData }>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
+export interface MeResponse {
+  user: {
+    _id: string;
+    email: string;
+    role: string;
+    createdAt: string;
+  };
+}
 
-  login: (payload: LoginPayload) =>
-    apiFetch<LoginData>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
-
-  me: () => apiFetch<{ user: UserData }>('/auth/me'),
+export const api = {
+  auth: {
+    register: (payload: RegisterPayload) =>
+      request<{ message: string; user: AuthResponse['user'] }>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        skipAuth: true,
+      }),
+    login: (payload: LoginPayload) =>
+      request<AuthResponse>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        skipAuth: true,
+      }),
+    me: () => request<MeResponse>('/auth/me'),
+  },
 };
+
+export { ApiError };

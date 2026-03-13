@@ -17,7 +17,7 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
+      match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
     },
     password: {
       type: String,
@@ -35,14 +35,15 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-// Hide password in JSON responses
+// Prevent password from being returned in queries by default
 userSchema.set('toJSON', {
-  transform: (_doc, ret) => {
-    const obj = ret as unknown as Record<string, unknown>;
-    delete obj['password'];
-    return obj;
+  transform(_doc, ret) {
+    const r = ret as Partial<typeof ret> & { password?: string };
+    delete r.password;
+    return r;
   },
 });
 
 const User = mongoose.model<IUser>('User', userSchema);
+
 export default User;

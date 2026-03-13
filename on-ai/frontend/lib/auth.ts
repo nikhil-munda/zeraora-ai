@@ -1,25 +1,25 @@
+/**
+ * Lightweight JWT utilities — runs in browser only (no server-side imports).
+ * Token is stored in both localStorage (for app reads) and a cookie (for Next.js middleware).
+ */
+
 const TOKEN_KEY = 'on-ai-token';
 
-export interface DecodedUser {
-  id: string;
-  email: string;
+export interface TokenPayload {
+  sub: string;
   role: string;
+  email?: string;
   iat: number;
   exp: number;
 }
 
-function base64UrlDecode(str: string): string {
-  const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
-  return atob(padded);
-}
-
-export function decodeToken(token: string): DecodedUser | null {
+/** Decode a JWT payload without verifying (client-side only). */
+export function decodeJwt(token: string): TokenPayload | null {
   try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(base64UrlDecode(parts[1]));
-    return payload as DecodedUser;
+    const base64 = token.split('.')[1];
+    if (!base64) return null;
+    const json = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(json) as TokenPayload;
   } catch {
     return null;
   }
@@ -33,39 +33,26 @@ export function getToken(): string | null {
 export function setToken(token: string): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(TOKEN_KEY, token);
+  // Also set a cookie so the Next.js Edge middleware can read it
+  const decoded = decodeJwt(token);
+  const maxAge = decoded ? decoded.exp - Math.floor(Date.now() / 1000) : 60 * 60 * 24 * 7;
+  document.cookie = `${TOKEN_KEY}=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
 }
 
 export function removeToken(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(TOKEN_KEY);
+  document.cookie = `${TOKEN_KEY}=; path=/; max-age=0`;
 }
 
-export function getUser(): DecodedUser | null {
+export function getUser(): TokenPayload | null {
   const token = getToken();
   if (!token) return null;
-
-  const decoded = decodeToken(token);
-  if (!decoded) return null;
-
-  // Check if expired
-  if (decoded.exp * 1000 < Date.now()) {
-    removeToken();
-    return null;
-  }
-
-  return decoded;
+  return decodeJwt(token);
 }
 
-export function isAuthenticated(): boolean {
-  return getUser() !== null;
-}
-
-export function isAdmin(): boolean {
+export function isTokenExpired(): boolean {
   const user = getUser();
-  return user?.role === 'admin';
-}
-
-export function logout(): void {
-  removeToken();
-  window.location.href = '/login';
+  if (!user) return true;
+  return user.exp < Math.floor(Date.now() / 1000);
 }

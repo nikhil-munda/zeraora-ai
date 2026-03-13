@@ -1,23 +1,19 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
-import app from './app';
+import 'dotenv/config';
 import connectDB from './config/db';
+import app from './app';
 
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT || '5000', 10);
 
-const startServer = async () => {
-  try {
-    await connectDB();
+async function main(): Promise<void> {
+  await connectDB();
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-      console.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-};
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
 
-startServer();
+main().catch((err) => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
+});

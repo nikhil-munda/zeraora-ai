@@ -1,73 +1,57 @@
-# On-AI — AI Knowledge Platform
+# ON-AI — AI Knowledge Platform
 
-A production-ready monorepo for the **On-AI** platform, an intelligent knowledge system designed to support multi-source RAG (Retrieval-Augmented Generation).
+A production-ready monorepo for an AI-powered knowledge platform with multi-source RAG support (coming in later steps).
 
-## Structure
+## Project Structure
 
 ```
 on-ai/
-├── frontend/          # Next.js 14 (App Router) + TypeScript + Tailwind + Shadcn UI
-├── backend/           # Node.js + Express + TypeScript + MongoDB
-├── ingestion/         # (Coming soon) Data ingestion pipelines
-├── docker/            # Dockerfiles
-└── docker-compose.yml # Local development orchestration
+├── frontend/       # Next.js 14 App Router (TypeScript + Tailwind + Shadcn UI)
+├── backend/        # Express + TypeScript REST API
+├── ingestion/      # RAG ingestion pipeline (Step 2 — coming soon)
+├── docker/         # Dockerfiles for frontend & backend
+└── docker-compose.yml
 ```
 
-## Tech Stack
-
-| Layer     | Technology                            |
-|-----------|---------------------------------------|
-| Frontend  | Next.js 14, TypeScript, Tailwind, Shadcn UI |
-| Backend   | Node.js, Express, TypeScript          |
-| Database  | MongoDB (Mongoose)                    |
-| Auth      | JWT + bcrypt                          |
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
-- Node.js >= 18
-- MongoDB (or use Docker Compose)
+- Node.js 20+
+- MongoDB (local or Atlas)
 
-### 1. Start with Docker (Recommended)
+### Manual
 
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.local.example frontend/.env.local
-docker-compose up -d
-```
-
-Frontend: http://localhost:3000  
-Backend API: http://localhost:5000
-
-### 2. Manual Setup
-
-**Backend**
+**Backend:**
 ```bash
 cd backend
-cp .env.example .env    # Fill in your values
+cp .env.example .env    # edit JWT_SECRET + MONGODB_URI
 npm install
-npm run dev
+npm run dev             # http://localhost:5000
 ```
 
-**Frontend**
+**Frontend:**
 ```bash
 cd frontend
 cp .env.local.example .env.local
 npm install
-npm run dev
+npm run dev             # http://localhost:3000
 ```
 
-## API Routes
+### Docker Compose
 
-| Method | Endpoint         | Auth Required | Description          |
-|--------|------------------|---------------|----------------------|
-| POST   | /auth/register   | No            | Register new user    |
-| POST   | /auth/login      | No            | Login, get JWT token |
-| GET    | /auth/me         | Yes           | Get current user     |
+```bash
+JWT_SECRET=your-secret docker compose up -d
+```
 
-## Roadmap
+## API
 
-- [x] STEP 1 — Auth system & base app structure
-- [ ] STEP 2 — Multi-source RAG pipeline
-- [ ] STEP 3 — AI chat interface
-- [ ] STEP 4 — Knowledge base management
+| Method | Route           | Auth          | Description         |
+|--------|-----------------|---------------|---------------------|
+| POST   | /auth/register  | —             | Register new user   |
+| POST   | /auth/login     | —             | Login, returns JWT  |
+| GET    | /auth/me        | Bearer token  | Get current user    |
+
+## Step 2 (Planned)
+- Multi-source document ingestion pipeline
+- RAG with vector search
+- AI chat interface

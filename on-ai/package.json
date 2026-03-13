@@ -1,20 +1,17 @@
 {
   "name": "on-ai",
   "version": "1.0.0",
-  "description": "On-AI Knowledge Platform Monorepo",
   "private": true,
+  "description": "ON-AI — AI Knowledge Platform",
   "workspaces": [
     "frontend",
     "backend"
   ],
   "scripts": {
-    "dev:backend": "npm run dev --workspace=backend",
-    "dev:frontend": "npm run dev --workspace=frontend",
-    "build:backend": "npm run build --workspace=backend",
-    "build:frontend": "npm run build --workspace=frontend",
-    "lint": "npm run lint --workspaces"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
   }
 }

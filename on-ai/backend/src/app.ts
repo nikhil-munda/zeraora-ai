@@ -1,11 +1,8 @@
-import express from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 
-dotenv.config();
-
-const app = express();
+const app: Application = express();
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(
@@ -17,23 +14,25 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Health Check ─────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => {
-  res.status(200).json({ success: true, message: 'On-AI API is running 🚀' });
+// ─── Health check ─────────────────────────────────────────────────────────────
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ─── API Routes ───────────────────────────────────────────────────────────────
+// ─── Routes ──────────────────────────────────────────────────────────────────
 app.use('/auth', authRoutes);
 
-// ─── 404 Handler ─────────────────────────────────────────────────────────────
-app.use((_req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+// ─── 404 handler ─────────────────────────────────────────────────────────────
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({ message: 'Route not found' });
 });
 
-// ─── Global Error Handler ─────────────────────────────────────────────────────
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ success: false, message: 'Internal server error' });
+// ─── Global error handler ─────────────────────────────────────────────────────
+app.use((err: Error & { statusCode?: number }, _req: Request, res: Response, _next: NextFunction) => {
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
+  console.error(`[Error] ${statusCode} — ${message}`);
+  res.status(statusCode).json({ message });
 });
 
 export default app;

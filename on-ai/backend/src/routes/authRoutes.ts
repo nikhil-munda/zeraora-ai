@@ -4,19 +4,13 @@ import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
 
-// @route  POST /auth/register
-// @desc   Register a new user
-// @access Public
+// POST /auth/register
 router.post('/register', register);
 
-// @route  POST /auth/login
-// @desc   Login and receive a JWT token
-// @access Public
+// POST /auth/login
 router.post('/login', login);
 
-// @route  GET /auth/me
-// @desc   Get current authenticated user
-// @access Private
+// GET /auth/me — protected
 router.get('/me', authMiddleware, me);
 
 export default router;

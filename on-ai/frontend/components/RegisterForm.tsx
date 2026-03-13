@@ -1,149 +1,116 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { authApi } from '@/lib/api';
-import { Eye, EyeOff, UserPlus, Loader2, CheckCircle2 } from 'lucide-react';
+import { api, ApiError } from '@/lib/api';
 
 export default function RegisterForm() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
-  const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
-  const passwordStrong = password.length >= 6;
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError('');
+    setError(null);
 
-    if (!passwordsMatch) {
+    if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
-    if (!passwordStrong) {
+    if (password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
     }
 
     setLoading(true);
-
     try {
-      await authApi.register({ email, password });
-      setSuccess(true);
-      setTimeout(() => router.push('/login'), 2000);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      await api.auth.register({ email, password });
+      router.push('/login?registered=1');
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
-  };
-
-  if (success) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-8 animate-fade-in">
-        <CheckCircle2 size={48} className="text-green-400" />
-        <h3 className="text-lg font-semibold text-foreground">Account Created!</h3>
-        <p className="text-sm text-muted-foreground text-center">
-          Redirecting to login...
-        </p>
-      </div>
-    );
   }
 
+  const inputCls = 'w-full px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all text-sm';
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
       {error && (
-        <div className="px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-red-400 animate-fade-in">
+        <div className="rounded-lg px-4 py-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
           {error}
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
+      <div className="space-y-1.5">
+        <label htmlFor="reg-email" className="block text-sm font-medium text-foreground">
+          Email address
+        </label>
+        <input
+          id="reg-email"
           type="email"
-          placeholder="you@example.com"
+          autoComplete="email"
+          required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
+          placeholder="you@example.com"
+          className={inputCls}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <div className="relative">
-          <Input
-            id="password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Min. 6 characters"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="new-password"
-            className="pr-10"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            tabIndex={-1}
-          >
-            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-        </div>
-        {password && (
-          <p className={`text-xs ${passwordStrong ? 'text-green-400' : 'text-muted-foreground'}`}>
-            {passwordStrong ? '✓ Strong enough' : '✗ At least 6 characters required'}
-          </p>
-        )}
+      <div className="space-y-1.5">
+        <label htmlFor="reg-password" className="block text-sm font-medium text-foreground">
+          Password
+        </label>
+        <input
+          id="reg-password"
+          type="password"
+          autoComplete="new-password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Min. 6 characters"
+          className={inputCls}
+        />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <Input
-          id="confirmPassword"
+      <div className="space-y-1.5">
+        <label htmlFor="reg-confirm-password" className="block text-sm font-medium text-foreground">
+          Confirm password
+        </label>
+        <input
+          id="reg-confirm-password"
           type="password"
-          placeholder="Repeat your password"
+          autoComplete="new-password"
+          required
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-          autoComplete="new-password"
+          placeholder="Repeat your password"
+          className={inputCls}
         />
-        {confirmPassword && (
-          <p className={`text-xs ${passwordsMatch ? 'text-green-400' : 'text-red-400'}`}>
-            {passwordsMatch ? '✓ Passwords match' : '✗ Passwords do not match'}
-          </p>
-        )}
       </div>
 
-      <Button type="submit" className="w-full" size="lg" disabled={loading}>
-        {loading ? (
-          <Loader2 size={18} className="mr-2 animate-spin" />
-        ) : (
-          <UserPlus size={18} className="mr-2" />
-        )}
-        {loading ? 'Creating account...' : 'Create Account'}
-      </Button>
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-2.5 px-4 rounded-lg bg-violet-600 hover:bg-violet-500 active:scale-[0.98] text-white font-semibold text-sm transition-all duration-150 btn-glow disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {loading ? 'Creating account…' : 'Create account'}
+      </button>
 
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{' '}
-        <Link
-          href="/login"
-          className="text-primary hover:underline font-medium transition-colors"
-        >
+        <Link href="/login" className="text-violet-400 hover:text-violet-300 font-medium transition-colors">
           Sign in
         </Link>
       </p>

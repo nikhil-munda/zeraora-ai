@@ -1,62 +1,51 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { logout, getUser } from '@/lib/auth';
-import { Brain, LogOut, Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { removeToken, getUser } from '@/lib/auth';
+import { LogOut, Sparkles } from 'lucide-react';
 
 export default function Navbar() {
   const router = useRouter();
   const user = getUser();
 
-  const handleLogout = () => {
-    logout();
-    // Also clear cookie
-    document.cookie = 'on-ai-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+  function handleLogout() {
+    removeToken();
     router.push('/login');
-  };
+    router.refresh();
+  }
 
   return (
-    <header className="h-16 border-b border-border glass sticky top-0 z-30 flex items-center px-6 gap-4">
-      {/* Branding */}
-      <Link href="/dashboard" className="flex items-center gap-2 group">
-        <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center glow group-hover:scale-105 transition-transform">
-          <Brain size={18} className="text-white" />
+    <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 bg-background/80 backdrop-blur-md flex-shrink-0">
+      {/* Brand */}
+      <div className="flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
+          <Sparkles className="w-4 h-4 text-violet-400" />
         </div>
-        <span className="font-bold text-lg text-gradient hidden sm:block">On-AI</span>
-      </Link>
-
-      {/* Spacer */}
-      <div className="flex-1" />
+        <span className="font-bold text-lg gradient-text">ON-AI</span>
+      </div>
 
       {/* Right side */}
-      <div className="flex items-center gap-3">
-        <button className="relative p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
-          <Bell size={18} />
-        </button>
-
+      <div className="flex items-center gap-4">
         {user && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary border border-border">
-            <div className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center text-xs font-bold text-white">
-              {user.email.charAt(0).toUpperCase()}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-xs font-semibold text-violet-300">
+              {user.sub.charAt(0).toUpperCase()}
             </div>
-            <div className="hidden sm:block">
-              <p className="text-xs font-medium truncate max-w-[120px]">{user.email}</p>
-              <p className="text-[10px] text-muted-foreground capitalize">{user.role}</p>
-            </div>
+            {user.role === 'admin' && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-400 font-medium">
+                Admin
+              </span>
+            )}
           </div>
         )}
-
-        <Button
-          variant="ghost"
-          size="icon"
+        <button
           onClick={handleLogout}
-          title="Sign out"
-          className="text-muted-foreground hover:text-foreground"
+          id="logout-btn"
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5"
         >
-          <LogOut size={18} />
-        </Button>
+          <LogOut className="w-4 h-4" />
+          <span>Sign out</span>
+        </button>
       </div>
     </header>
   );

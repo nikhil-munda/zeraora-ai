@@ -1,29 +1,17 @@
+# syntax=docker/dockerfile:1
 FROM node:20-alpine AS builder
 
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY . .
+WORKDIR /app/backend
+COPY backend/package*.json ./
+RUN npm ci --only=production=false
+COPY backend/ ./
 RUN npm run build
 
-# Production stage
+# ── Production image ──────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 appuser
-
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-
-USER appuser
-
+WORKDIR /app/backend
+COPY --from=builder /app/backend/dist ./dist
+COPY backend/package*.json ./
+RUN npm ci --only=production
 EXPOSE 5000
-
 CMD ["node", "dist/server.js"]

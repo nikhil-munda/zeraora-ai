@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,95 +6,60 @@
 
 @layer base {
   :root {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
-
-    --card: 224 71% 6%;
-    --card-foreground: 213 31% 91%;
-
-    --popover: 224 71% 4%;
-    --popover-foreground: 213 31% 91%;
-
-    --primary: 210 100% 66%;
-    --primary-foreground: 224 71% 4%;
-
-    --secondary: 222 47% 11%;
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 265 89% 66%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217 33% 15%;
     --secondary-foreground: 210 40% 98%;
-
-    --muted: 223 47% 11%;
-    --muted-foreground: 215.4 16.3% 56.9%;
-
-    --accent: 216 34% 17%;
+    --muted: 217 33% 13%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 265 89% 70%;
     --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 63% 31%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 216 34% 17%;
-    --input: 216 34% 17%;
-    --ring: 210 100% 66%;
-
-    --radius: 0.75rem;
+    --border: 217 33% 17%;
+    --input: 217 33% 12%;
+    --ring: 265 89% 66%;
+    --radius: 0.625rem;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground font-sans antialiased;
+  html {
+    @apply scroll-smooth;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.12), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(99, 102, 241, 0.08), transparent);
+    background-attachment: fixed;
   }
 }
 
 @layer utilities {
   .glass {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
   }
 
-  .gradient-primary {
-    background: linear-gradient(135deg, hsl(210, 100%, 66%), hsl(240, 100%, 70%));
+  .glass-card {
+    @apply glass rounded-xl shadow-xl;
   }
 
-  .text-gradient {
-    background: linear-gradient(135deg, hsl(210, 100%, 76%), hsl(240, 100%, 80%));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .gradient-text {
+    @apply bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent;
   }
 
-  .glow {
-    box-shadow: 0 0 20px rgba(96, 165, 250, 0.15);
+  .btn-glow {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
   }
-
-  .glow-hover:hover {
-    box-shadow: 0 0 30px rgba(96, 165, 250, 0.25);
-    transition: box-shadow 0.3s ease;
-  }
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
 }

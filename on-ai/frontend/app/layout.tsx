@@ -2,18 +2,14 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'On-AI — AI Knowledge Platform',
-  description: 'Intelligent knowledge platform powered by multi-source RAG',
+  title: 'ON-AI — AI Knowledge Platform',
+  description: 'Chat with your knowledge base. Multi-source RAG powered by AI.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans antialiased">
+    <html lang="en" className="dark">
+      <body className="min-h-screen">
         {children}
       </body>
     </html>

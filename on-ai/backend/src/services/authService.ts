@@ -1,72 +1,56 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import User, { IUser } from '../models/User';
 
-export interface AuthPayload {
-  id: string;
-  email: string;
-  role: string;
-}
+const SALT_ROUNDS = 12;
 
-export interface LoginResult {
+interface AuthResult {
   token: string;
   user: Omit<IUser, 'password'>;
 }
 
-const generateToken = (payload: AuthPayload): string => {
+function signToken(userId: string, role: string): string {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error('JWT_SECRET is not defined');
 
-  return jwt.sign(payload, secret, {
-    expiresIn: (process.env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn']) || '7d',
-  });
-};
-
-export const registerUser = async (
-  email: string,
-  password: string
-): Promise<IUser> => {
-  const existingUser = await User.findOne({ email: email.toLowerCase() });
-  if (existingUser) {
-    throw new Error('User with this email already exists');
-  }
-
-  const salt = await bcrypt.genSalt(12);
-  const hashedPassword = await bcrypt.hash(password, salt);
-
-  const user = await User.create({
-    email: email.toLowerCase(),
-    password: hashedPassword,
-  });
-
-  return user;
-};
-
-export const loginUser = async (
-  email: string,
-  password: string
-): Promise<LoginResult> => {
-  const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
-  if (!user) {
-    throw new Error('Invalid email or password');
-  }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw new Error('Invalid email or password');
-  }
-
-  const payload: AuthPayload = {
-    id: user._id.toString(),
-    email: user.email,
-    role: user.role,
+  const options: SignOptions = {
+    expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as SignOptions['expiresIn'],
   };
 
-  const token = generateToken(payload);
+  return jwt.sign({ sub: userId, role }, secret, options);
+}
 
-  return { token, user };
-};
+export async function registerUser(email: string, password: string): Promise<IUser> {
+  const existing = await User.findOne({ email });
+  if (existing) {
+    const err = new Error('Email already in use') as Error & { statusCode: number };
+    err.statusCode = 409;
+    throw err;
+  }
 
-export const getUserById = async (id: string): Promise<IUser | null> => {
-  return User.findById(id).select('-password');
-};
+  const hashed = await bcrypt.hash(password, SALT_ROUNDS);
+  const user = await User.create({ email, password: hashed });
+  return user;
+}
+
+export async function loginUser(email: string, password: string): Promise<AuthResult> {
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) {
+    const err = new Error('Invalid credentials') as Error & { statusCode: number };
+    err.statusCode = 401;
+    throw err;
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    const err = new Error('Invalid credentials') as Error & { statusCode: number };
+    err.statusCode = 401;
+    throw err;
+  }
+
+  const token = signToken(user._id.toString(), user.role);
+
+  // Return user without password (toJSON handles this, but we recast for TypeScript)
+  const safeUser = user.toJSON() as unknown as Omit<IUser, 'password'>;
+  return { token, user: safeUser };
+}

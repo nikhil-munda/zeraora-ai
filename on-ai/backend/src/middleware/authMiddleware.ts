@@ -1,42 +1,43 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { AuthPayload } from '../services/authService';
 
-export interface AuthRequest extends Request {
-  user?: AuthPayload;
+export interface JwtPayload {
+  sub: string;
+  role: string;
+  iat: number;
+  exp: number;
 }
 
-export const authMiddleware = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): void => {
-  try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ success: false, message: 'No token provided' });
-      return;
-    }
-
-    const token = authHeader.split(' ')[1];
-    const secret = process.env.JWT_SECRET;
-
-    if (!secret) {
-      res.status(500).json({ success: false, message: 'Server configuration error' });
-      return;
-    }
-
-    const decoded = jwt.verify(token, secret) as AuthPayload;
-    req.user = decoded;
-    next();
-  } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
-      res.status(401).json({ success: false, message: 'Token has expired' });
-    } else if (error instanceof jwt.JsonWebTokenError) {
-      res.status(401).json({ success: false, message: 'Invalid token' });
-    } else {
-      res.status(500).json({ success: false, message: 'Authentication error' });
+// Extend Express Request to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JwtPayload;
     }
   }
-};
+}
+
+export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ message: 'No token provided' });
+    return;
+  }
+
+  const token = authHeader.slice(7);
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    res.status(500).json({ message: 'Server configuration error' });
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, secret) as JwtPayload;
+    req.user = decoded;
+    next();
+  } catch {
+    res.status(401).json({ message: 'Invalid or expired token' });
+  }
+}
