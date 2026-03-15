@@ -9,9 +9,14 @@ export interface ChatMessageProps {
   role: 'user' | 'ai';
   content: string;
   timestamp?: string;
+  sources?: Array<{
+    sourceId: string;
+    fileName: string;
+    score: number;
+  }>;
 }
 
-export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
+export function ChatMessage({ role, content, timestamp, sources }: ChatMessageProps) {
   const isUser = role === 'user';
   const [initial, setInitial] = useState('U');
 
@@ -57,6 +62,21 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
               : "glass text-foreground rounded-2xl rounded-tl-sm"
           )}>
             <div className="whitespace-pre-wrap break-words">{content}</div>
+            {!isUser && sources && sources.length > 0 && (
+              <div className="mt-4 border-t border-white/10 pt-3">
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">Sources</div>
+                <div className="flex flex-wrap gap-2">
+                  {sources.map((source) => (
+                    <span
+                      key={`${source.sourceId}-${source.fileName}`}
+                      className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-muted-foreground"
+                    >
+                      {source.fileName}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {timestamp && (

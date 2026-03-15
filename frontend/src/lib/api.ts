@@ -70,6 +70,18 @@ export interface MeResponse {
   };
 }
 
+export interface ChatSource {
+  sourceId: string;
+  fileName: string;
+  score: number;
+}
+
+export interface ChatResponse {
+  success: boolean;
+  answer: string;
+  sources: ChatSource[];
+}
+
 export const api = {
   auth: {
     register: (payload: RegisterPayload) =>
@@ -85,6 +97,13 @@ export const api = {
         skipAuth: true,
       }),
     me: () => request<MeResponse>('/auth/me'),
+  },
+  chat: {
+    ask: (message: string) =>
+      request<ChatResponse>('/chat', {
+        method: 'POST',
+        body: JSON.stringify({ message }),
+      }),
   },
 };
 

@@ -1,6 +1,8 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import authRoutes from './routes/authRoutes';
+import chatRoutes from './routes/chatRoutes';
+import sourceRoutes from './routes/sourceRoutes';
 
 const app: Application = express();
 
@@ -9,6 +11,8 @@ app.use(
   cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 app.use(express.json());
@@ -21,6 +25,8 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 app.use('/auth', authRoutes);
+app.use('/chat', chatRoutes);
+app.use('/sources', sourceRoutes);
 
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {

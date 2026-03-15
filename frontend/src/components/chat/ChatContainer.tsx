@@ -5,6 +5,7 @@ import { ChatMessage, type ChatMessageProps } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { Sparkles, FileText, Code, GitBranch } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ApiError, api } from '@/lib/api';
 
 const SUGGESTIONS = [
   {
@@ -39,23 +40,41 @@ export function ChatContainer() {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const handleSend = (content: string) => {
-    // 1. Add user message
-    const userMsg: ChatMessageProps = { role: 'user', content, timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
-    setMessages(prev => [...prev, userMsg]);
-    
-    // 2. Simulate AI thinking / streaming response
+  const handleSend = async (content: string) => {
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const userMsg: ChatMessageProps = { role: 'user', content, timestamp };
+    setMessages((prev) => [...prev, userMsg]);
     setIsTyping(true);
-    
-    setTimeout(() => {
-      setIsTyping(false);
-      const aiMsg: ChatMessageProps = { 
-        role: 'ai', 
-        content: "This is a simulated AI response layout. In Phase 2, this will stream from the RAG backend pipeline.", 
-        timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+
+    try {
+      const response = await api.chat.ask(content);
+      const aiMsg: ChatMessageProps = {
+        role: 'ai',
+        content: response.answer,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        sources: response.sources,
       };
-      setMessages(prev => [...prev, aiMsg]);
-    }, 1200);
+
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Failed to get a response from the knowledge base.';
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'ai',
+          content: `Request failed: ${message}`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
@@ -85,7 +104,8 @@ export function ChatContainer() {
               {SUGGESTIONS.map((s, i) => (
                 <button 
                   key={i}
-                  onClick={() => handleSend(s.title)}
+                  onClick={() => void handleSend(s.title)}
+                  disabled={isTyping}
                   className="glass-card p-5 text-left transition-all hover:-translate-y-1 hover:border-violet-500/40 hover:shadow-[0_0_20px_rgba(139,92,246,0.15)] group"
                 >
                   <div className="mb-3 p-2 w-fit rounded-lg bg-white/5 border border-white/10 group-hover:bg-background transition-colors">

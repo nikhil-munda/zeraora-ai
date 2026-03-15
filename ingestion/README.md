@@ -1,11 +1,25 @@
-# Ingestion Pipeline — Coming in Step 2
+# Ingestion Pipeline
 
-This directory will contain the multi-source RAG ingestion pipeline.
+This directory contains the PDF ingestion and retrieval utilities used by the backend.
 
-## Planned Features
+## Current Capabilities
 
-- PDF / DOCX / Markdown document ingestion
-- Web URL scraping + chunking
-- Vector embedding (OpenAI / local models)
-- Storage in a vector database (Qdrant / Pinecone / Weaviate)
-- Metadata indexing for filtered retrieval
+- PDF text extraction with `pdfplumber`
+- Recursive chunking for long documents
+- Local embeddings with `sentence-transformers`
+- Qdrant storage with `user_id` and `source_id` metadata filters
+- CLI scripts for backend integration:
+	- `cli/ingest_pdf.py`
+	- `cli/query_context.py`
+
+## Setup
+
+```bash
+cd ingestion
+pip install -r requirements.txt
+```
+
+Environment variables:
+
+- `QDRANT_URL` defaults to `http://localhost:6333`
+- `QDRANT_COLLECTION` defaults to `documents`
