@@ -2,6 +2,10 @@ pdfplumber
 sentence-transformers
 qdrant-client
 langchain-text-splitters
+langchain-community
 requests
 beautifulsoup4
-GitPython
+youtube-transcript-api
+pytube
+fastapi
+uvicorn

@@ -1,6 +1,11 @@
 import { Request, Response } from 'express';
 import Source from '../models/Source';
-import { ingestGithubWithPython, ingestPdfWithPython, ingestWebsiteWithPython } from '../services/pythonBridgeService';
+import {
+  ingestGithubWithPython,
+  ingestPdfWithPython,
+  ingestWebsiteWithPython,
+  ingestYoutubeWithPython,
+} from '../services/pythonBridgeService';
 
 export const uploadPdf = async (req: Request, res: Response) => {
   try {
@@ -186,6 +191,71 @@ export const ingestGithub = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error('Error ingesting GitHub repository:', error);
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Server error',
+    });
+  }
+};
+
+export const ingestYoutube = async (req: Request, res: Response) => {
+  try {
+    const url = typeof req.body?.url === 'string' ? req.body.url.trim() : '';
+
+    if (!url) {
+      return res.status(400).json({ success: false, message: 'YouTube URL is required' });
+    }
+
+    if (!req.user || !req.user.sub) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    let normalizedUrl: URL;
+    try {
+      normalizedUrl = new URL(url);
+    } catch {
+      return res.status(400).json({ success: false, message: 'Invalid YouTube URL' });
+    }
+
+    const host = normalizedUrl.hostname.toLowerCase();
+    const isYoutubeHost = host.includes('youtube.com') || host === 'youtu.be';
+    if (!isYoutubeHost) {
+      return res.status(400).json({ success: false, message: 'Only YouTube URLs are supported' });
+    }
+
+    const sourceName = normalizedUrl.toString();
+    const newSource = new Source({
+      name: sourceName,
+      type: 'youtube',
+      status: 'processing',
+      userId: req.user.sub,
+    });
+
+    await newSource.save();
+
+    try {
+      const ingestionResult = await ingestYoutubeWithPython({
+        url: sourceName,
+        sourceId: newSource._id.toString(),
+        userId: req.user.sub,
+      });
+
+      newSource.status = 'indexed';
+      await newSource.save();
+
+      res.status(201).json({
+        success: true,
+        source: newSource,
+        ingestion: ingestionResult,
+      });
+      return;
+    } catch (error) {
+      newSource.status = 'failed';
+      await newSource.save();
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error ingesting YouTube video:', error);
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : 'Server error',

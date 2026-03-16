@@ -1,37 +1,76 @@
-import os
-from pipeline.pdf_ingestion_pipeline import process_pdf
-from pipeline.website_ingestion_pipeline import process_website
+import logging
+import uuid
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
 from pipeline.github_ingestion_pipeline import process_github_repo
+from pipeline.youtube_ingestion_pipeline import process_youtube_video
 
-if __name__ == "__main__":
-    sample_pdf_path = "uploads/sample.pdf"
-    
-    if not os.path.exists(sample_pdf_path):
-        print(f"Sample PDF not found at {sample_pdf_path}.")
-        print("Please place a sample pdf at 'uploads/sample.pdf' to proceed.")
-        print("You can create the uploads folder if it doesn't exist.")
-    else:
-        result = process_pdf(
-            sample_pdf_path,
-            source_id="sample-source",
-            user_id="sample-user",
-            file_name=os.path.basename(sample_pdf_path),
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
+
+app = FastAPI(title="Zeraora-AI Ingestion Service", version="1.0.0")
+
+
+class GithubIngestRequest(BaseModel):
+    repo_url: str
+    source_id: str | None = None
+    user_id: str | None = None
+
+
+class YoutubeIngestRequest(BaseModel):
+    url: str
+    source_id: str | None = None
+    user_id: str | None = None
+
+
+@app.post("/ingest/github")
+def ingest_github(payload: GithubIngestRequest) -> dict:
+    source_id = payload.source_id or f"github-{uuid.uuid4().hex[:12]}"
+    user_id = payload.user_id or "anonymous"
+
+    try:
+        result = process_github_repo(
+            payload.repo_url,
+            source_id=source_id,
+            user_id=user_id,
         )
-        print("PDF processing result:", result)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"GitHub ingestion failed: {error}") from error
 
-    print("\n--- Website Ingestion Test ---")
-    website_result = process_website(
-        "https://docs.python.org/3/tutorial/",
-        source_id="sample-website-source",
-        user_id="sample-user",
-        file_name="https://docs.python.org/3/tutorial/",
-    )
-    print("Website processing result:", website_result)
+    return {
+        "success": True,
+        "result": result,
+    }
 
-    print("\n--- GitHub Ingestion Test ---")
-    github_result = process_github_repo(
-        "https://github.com/langchain-ai/langchain",
-        source_id="sample-github-source",
-        user_id="sample-user"
-    )
-    print("GitHub processing result:", github_result)
+
+@app.post("/ingest/youtube")
+def ingest_youtube(payload: YoutubeIngestRequest) -> dict:
+    source_id = payload.source_id or f"youtube-{uuid.uuid4().hex[:12]}"
+    user_id = payload.user_id or "anonymous"
+
+    try:
+        result = process_youtube_video(
+            payload.url,
+            source_id=source_id,
+            user_id=user_id,
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"YouTube ingestion failed: {error}") from error
+
+    return {
+        "success": True,
+        "result": result,
+    }
+
+
+@app.get("/health")
+def health() -> dict:
+    return {"status": "ok"}

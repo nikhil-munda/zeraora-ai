@@ -15,14 +15,20 @@ interface PythonErrorResponse {
 
 export interface IngestionResult {
   url?: string;
+  video_url?: string;
   repo?: string;
   repo_url?: string;
   files?: number;
-  file_name: string;
-  characters: number;
-  chunks: number;
-  embeddings: number;
-  stored_points: number;
+  file_name?: string;
+  title?: string;
+  transcript_length?: number;
+  characters?: number;
+  chunks?: number;
+  chunks_created?: number;
+  embeddings?: number;
+  embeddings_generated?: number;
+  stored_points?: number;
+  stored_vectors?: number;
 }
 
 export interface RetrievalMatch {
@@ -36,8 +42,11 @@ const ingestionRoot = path.resolve(__dirname, '../../../ingestion');
 const workspaceRoot = path.resolve(__dirname, '../../..');
 
 function resolvePythonBin(): string {
-  if (process.env.PYTHON_BIN) {
-    return process.env.PYTHON_BIN;
+  const configuredPython = process.env.PYTHON_BIN?.trim();
+  const genericPythonCommands = new Set(['python', 'python3']);
+
+  if (configuredPython && !genericPythonCommands.has(configuredPython)) {
+    return configuredPython;
   }
 
   const unixVenvPython = path.join(workspaceRoot, '.venv', 'bin', 'python');
@@ -87,8 +96,32 @@ function runPythonJson<T>(scriptRelativePath: string, args: string[]): Promise<T
         return;
       }
 
+      const parseCandidates: string[] = [output];
+      const lines = output
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+      for (let i = lines.length - 1; i >= 0; i -= 1) {
+        if (lines[i].startsWith('{') && lines[i].endsWith('}')) {
+          parseCandidates.push(lines[i]);
+        }
+      }
+
       try {
-        const parsed = JSON.parse(output) as PythonSuccessResponse<T> | PythonErrorResponse;
+        let parsed: PythonSuccessResponse<T> | PythonErrorResponse | null = null;
+        for (const candidate of parseCandidates) {
+          try {
+            parsed = JSON.parse(candidate) as PythonSuccessResponse<T> | PythonErrorResponse;
+            break;
+          } catch {
+            // Keep trying with smaller candidates (typically final JSON line).
+          }
+        }
+
+        if (!parsed) {
+          throw new Error('No JSON payload found in Python output');
+        }
+
         if (!parsed.success) {
           reject(new Error(parsed.error || stderr.trim() || 'Python process failed'));
           return;
@@ -156,6 +189,21 @@ export function ingestGithubWithPython(params: {
   const { repoUrl, sourceId, userId } = params;
   return runPythonJson<IngestionResult>('cli/ingest_github.py', [
     repoUrl,
+    '--source-id',
+    sourceId,
+    '--user-id',
+    userId,
+  ]);
+}
+
+export function ingestYoutubeWithPython(params: {
+  url: string;
+  sourceId: string;
+  userId: string;
+}): Promise<IngestionResult> {
+  const { url, sourceId, userId } = params;
+  return runPythonJson<IngestionResult>('cli/ingest_youtube.py', [
+    url,
     '--source-id',
     sourceId,
     '--user-id',
