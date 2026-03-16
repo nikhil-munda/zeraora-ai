@@ -11,8 +11,8 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Sign in — ON-AI',
-  description: 'Sign in to ON-AI — Always-on intelligence for your knowledge base.',
+  title: 'Sign in — Zeraora AI',
+  description: 'Sign in to Zeraora AI — Always-on intelligence for your knowledge base.',
 };
 
 const SOURCES = [
@@ -56,7 +56,7 @@ export default function LoginPage() {
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
               <Cpu className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-white">ON-AI</span>
+            <span className="text-xl font-bold tracking-tight text-white">Zeraora AI</span>
           </div>
         </div>
 
@@ -115,7 +115,7 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
               <Cpu className="w-4 h-4 text-white" />
             </div>
-            <span className="text-lg font-bold text-white">ON-AI</span>
+            <span className="text-lg font-bold text-white">Zeraora AI</span>
           </div>
 
           {/* Card */}
@@ -124,7 +124,7 @@ export default function LoginPage() {
             {/* Card header */}
             <div className="mb-7">
               <h2 className="text-2xl font-bold text-white mb-1">Welcome back</h2>
-              <p className="text-sm text-white/40">Sign in to your ON-AI account</p>
+              <p className="text-sm text-white/40">Sign in to your Zeraora AI account</p>
             </div>
 
             <LoginForm />

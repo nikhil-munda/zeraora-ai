@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Shield, Users, BarChart2, Settings } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Admin — ON-AI',
+  title: 'Admin — Zeraora AI',
 };
 
 export default function AdminPage() {

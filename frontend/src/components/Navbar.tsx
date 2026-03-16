@@ -21,7 +21,7 @@ export default function Navbar() {
         <div className="w-7 h-7 rounded-lg bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
           <Sparkles className="w-4 h-4 text-violet-400" />
         </div>
-        <span className="font-bold text-lg gradient-text">ON-AI</span>
+        <span className="font-bold text-lg gradient-text">Zeraora AI</span>
       </div>
 
       {/* Right side */}

@@ -53,7 +53,7 @@ export default function Sidebar() {
       {/* Bottom section */}
       <div className="p-4 border-t border-white/10">
         <p className="text-xs text-muted-foreground text-center">
-          ON-AI v1.0 · Step 1
+          Zeraora AI v1.0 · Step 1
         </p>
       </div>
     </aside>

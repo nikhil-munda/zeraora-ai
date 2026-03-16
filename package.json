@@ -1,8 +1,8 @@
 {
-  "name": "on-ai",
+  "name": "zeraora-ai",
   "version": "1.0.0",
   "private": true,
-  "description": "ON-AI — AI Knowledge Platform",
+  "description": "Zeraora AI — AI Knowledge Platform",
   "workspaces": [
     "frontend",
     "backend"

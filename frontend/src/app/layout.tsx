@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'ON-AI — AI Knowledge Platform',
+  title: 'Zeraora AI — AI Knowledge Platform',
   description: 'Chat with your knowledge base. Multi-source RAG powered by AI.',
 };
 

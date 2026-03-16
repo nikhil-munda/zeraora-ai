@@ -3,6 +3,8 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes';
 import chatRoutes from './routes/chatRoutes';
 import sourceRoutes from './routes/sourceRoutes';
+import historyRoutes from './routes/historyRoutes';
+import settingsRoutes from './routes/settingsRoutes';
 
 const app: Application = express();
 
@@ -27,6 +29,8 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/auth', authRoutes);
 app.use('/chat', chatRoutes);
 app.use('/sources', sourceRoutes);
+app.use('/history', historyRoutes);
+app.use('/settings', settingsRoutes);
 
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {

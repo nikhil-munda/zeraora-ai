@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const TOKEN_KEY = 'on-ai-token';
+const TOKEN_KEY = 'zeraora-ai-token';
 
 const PUBLIC_PATHS = ['/login', '/register'];
 

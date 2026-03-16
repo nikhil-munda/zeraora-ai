@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { MessageSquare, Sparkles, Zap } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Dashboard — ON-AI',
+  title: 'Dashboard — Zeraora AI',
 };
 
 export default function DashboardPage() {

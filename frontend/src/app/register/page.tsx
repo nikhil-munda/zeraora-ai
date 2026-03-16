@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import RegisterForm from '@/components/RegisterForm';
 
 export const metadata: Metadata = {
-  title: 'Create Account — ON-AI',
-  description: 'Create a new ON-AI account',
+  title: 'Create Account — Zeraora AI',
+  description: 'Create a new Zeraora AI account',
 };
 
 export default function RegisterPage() {
@@ -16,7 +16,7 @@ export default function RegisterPage() {
             <span className="text-2xl font-bold gradient-text">AI</span>
           </div>
           <h1 className="text-3xl font-bold text-foreground">
-            Join <span className="gradient-text">ON-AI</span>
+            Join <span className="gradient-text">Zeraora AI</span>
           </h1>
           <p className="mt-2 text-muted-foreground">Create your account to get started</p>
         </div>

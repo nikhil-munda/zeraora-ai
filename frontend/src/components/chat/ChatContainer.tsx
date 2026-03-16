@@ -97,7 +97,7 @@ export function ChatContainer() {
               Ask anything about your <span className="gradient-text">knowledge base</span>
             </h1>
             <p className="text-muted-foreground text-center mb-10 max-w-md">
-              Chat with ON-AI connected to your verified documents, repositories, YouTube videos, and notes.
+              Chat with Zeraora AI connected to your verified documents, repositories, YouTube videos, and notes.
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">

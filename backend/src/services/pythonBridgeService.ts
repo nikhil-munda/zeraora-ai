@@ -14,6 +14,10 @@ interface PythonErrorResponse {
 }
 
 export interface IngestionResult {
+  url?: string;
+  repo?: string;
+  repo_url?: string;
+  files?: number;
   file_name: string;
   characters: number;
   chunks: number;
@@ -123,6 +127,39 @@ export function ingestPdfWithPython(params: {
     userId,
     '--file-name',
     fileName,
+  ]);
+}
+
+export function ingestWebsiteWithPython(params: {
+  url: string;
+  fileName: string;
+  sourceId: string;
+  userId: string;
+}): Promise<IngestionResult> {
+  const { url, fileName, sourceId, userId } = params;
+  return runPythonJson<IngestionResult>('cli/ingest_website.py', [
+    url,
+    '--source-id',
+    sourceId,
+    '--user-id',
+    userId,
+    '--file-name',
+    fileName,
+  ]);
+}
+
+export function ingestGithubWithPython(params: {
+  repoUrl: string;
+  sourceId: string;
+  userId: string;
+}): Promise<IngestionResult> {
+  const { repoUrl, sourceId, userId } = params;
+  return runPythonJson<IngestionResult>('cli/ingest_github.py', [
+    repoUrl,
+    '--source-id',
+    sourceId,
+    '--user-id',
+    userId,
   ]);
 }
 

@@ -2,3 +2,6 @@ pdfplumber
 sentence-transformers
 qdrant-client
 langchain-text-splitters
+requests
+beautifulsoup4
+GitPython

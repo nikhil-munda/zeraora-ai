@@ -42,7 +42,7 @@ export default function Sidebar() {
             <Sparkles className="w-4 h-4 text-violet-400" />
           </div>
           <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-            ON-AI
+            Zeraora AI
           </span>
         </Link>
       </div>

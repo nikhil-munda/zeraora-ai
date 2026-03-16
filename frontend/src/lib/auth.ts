@@ -3,7 +3,7 @@
  * Token is stored in both localStorage (for app reads) and a cookie (for Next.js middleware).
  */
 
-const TOKEN_KEY = 'on-ai-token';
+const TOKEN_KEY = 'zeraora-ai-token';
 
 export interface TokenPayload {
   sub: string;
