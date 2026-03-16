@@ -1,4 +1,4 @@
-# ON-AI — AI Knowledge Platform
+# Zerarora — AI Knowledge Platform
 
 A monorepo for an AI-powered knowledge platform with authenticated PDF ingestion, Qdrant-backed retrieval, and Groq chat completions.
 
