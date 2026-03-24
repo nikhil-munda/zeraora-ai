@@ -1,6 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-export interface ISettings extends Document {
+export interface ISettings {
   userId: mongoose.Types.ObjectId;
   model: string;
   temperature: number;
@@ -9,7 +9,7 @@ export interface ISettings extends Document {
   show_sources: boolean;
 }
 
-const SettingsSchema: Schema = new Schema({
+const SettingsSchema = new Schema<ISettings>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   model: { type: String, default: 'GPT-4' },
   temperature: { type: Number, default: 0.7, min: 0, max: 1 },

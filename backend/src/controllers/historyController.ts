@@ -3,7 +3,7 @@ import History from '../models/History';
 
 export const getHistory = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.sub;
     if (!userId) {
       res.status(401).json({ message: 'Unauthorized' });
       return;
@@ -19,7 +19,7 @@ export const getHistory = async (req: Request, res: Response): Promise<void> => 
 
 export const getHistoryItem = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.sub;
     if (!userId) {
       res.status(401).json({ message: 'Unauthorized' });
       return;
@@ -42,7 +42,7 @@ export const getHistoryItem = async (req: Request, res: Response): Promise<void>
 
 export const deleteHistoryItem = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.sub;
     if (!userId) {
       res.status(401).json({ message: 'Unauthorized' });
       return;

@@ -3,7 +3,7 @@ import Settings from '../models/Settings';
 
 export const getSettings = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.sub;
     if (!userId) {
       res.status(401).json({ message: 'Unauthorized' });
       return;
@@ -26,7 +26,7 @@ export const getSettings = async (req: Request, res: Response): Promise<void> =>
 
 export const updateSettings = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.sub;
     if (!userId) {
       res.status(401).json({ message: 'Unauthorized' });
       return;
