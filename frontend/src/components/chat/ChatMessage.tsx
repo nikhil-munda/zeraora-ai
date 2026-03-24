@@ -4,6 +4,8 @@ import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getUser } from '@/lib/auth';
 import { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export interface ChatMessageProps {
   role: 'user' | 'ai';
@@ -61,7 +63,42 @@ export function ChatMessage({ role, content, timestamp, sources }: ChatMessagePr
               ? "bg-violet-600/90 text-white rounded-2xl rounded-tr-sm border border-violet-500/20" 
               : "glass text-foreground rounded-2xl rounded-tl-sm"
           )}>
-            <div className="whitespace-pre-wrap break-words">{content}</div>
+            {isUser ? (
+              <div className="whitespace-pre-wrap break-words">{content}</div>
+            ) : (
+              <div className="break-words">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+                    ul: ({ children }) => <ul className="mb-3 list-disc pl-5 last:mb-0">{children}</ul>,
+                    ol: ({ children }) => <ol className="mb-3 list-decimal pl-5 last:mb-0">{children}</ol>,
+                    li: ({ children }) => <li className="mb-1">{children}</li>,
+                    code: ({ children, className }) => {
+                      const isInline = !className;
+                      return isInline ? (
+                        <code className="rounded bg-black/25 px-1 py-0.5 text-sm">{children}</code>
+                      ) : (
+                        <code className={cn("block overflow-x-auto rounded-lg bg-black/30 p-3 text-sm", className)}>{children}</code>
+                      );
+                    },
+                    pre: ({ children }) => <pre className="mb-3 last:mb-0">{children}</pre>,
+                    a: ({ href, children }) => (
+                      <a href={href} target="_blank" rel="noreferrer" className="underline decoration-violet-400/60 underline-offset-2 hover:decoration-violet-300">
+                        {children}
+                      </a>
+                    ),
+                    blockquote: ({ children }) => (
+                      <blockquote className="mb-3 border-l-2 border-violet-400/60 pl-3 italic text-muted-foreground last:mb-0">
+                        {children}
+                      </blockquote>
+                    ),
+                  }}
+                >
+                  {content}
+                </ReactMarkdown>
+              </div>
+            )}
             {!isUser && sources && sources.length > 0 && (
               <div className="mt-4 border-t border-white/10 pt-3">
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">Sources</div>
