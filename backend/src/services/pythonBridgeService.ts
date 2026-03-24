@@ -211,6 +211,28 @@ export function ingestYoutubeWithPython(params: {
   ]);
 }
 
+export function ingestRedditWithPython(params: {
+  subreddit: string;
+  query?: string;
+  sourceId: string;
+  userId: string;
+}): Promise<IngestionResult> {
+  const { subreddit, query, sourceId, userId } = params;
+  const args = [
+    subreddit,
+    '--source-id',
+    sourceId,
+    '--user-id',
+    userId,
+  ];
+
+  if (query) {
+    args.push('--query', query);
+  }
+
+  return runPythonJson<IngestionResult>('cli/ingest_reddit.py', args);
+}
+
 export function retrieveContextWithPython(params: {
   query: string;
   userId: string;

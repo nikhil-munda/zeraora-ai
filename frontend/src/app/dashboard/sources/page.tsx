@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Globe, Github, Youtube, BookOpen } from 'lucide-react';
+import { FileText, Globe, Github, Youtube, BookOpen, MessageCircle } from 'lucide-react';
 import { SourceCard } from '@/components/sources/SourceCard';
 import { SourcesTable, type SourceData } from '@/components/sources/SourcesTable';
 import { useState, useEffect, useCallback } from 'react';
@@ -28,6 +28,11 @@ const SOURCE_TYPES = [
     title: 'YouTube Video',
     description: 'Extract transcripts and index video content automatically.',
     icon: <Youtube className="w-5 h-5" />,
+  },
+  {
+    title: 'Reddit',
+    description: 'Ingest subreddit posts with optional keyword filtering.',
+    icon: <MessageCircle className="w-5 h-5" />,
   },
   {
     title: 'ArXiv Paper',

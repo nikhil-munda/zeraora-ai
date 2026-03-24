@@ -8,6 +8,7 @@ This directory contains ingestion and retrieval utilities used by the backend.
 - Website extraction with `requests` + `beautifulsoup4`
 - GitHub repository extraction with `langchain_community.document_loaders.GithubFileLoader`
 - YouTube transcript extraction with `langchain_community.document_loaders.YoutubeLoader`
+- Reddit post extraction with `langchain_community.document_loaders.RedditPostsLoader`
 - Recursive chunking for long documents
 - Local embeddings with `sentence-transformers`
 - Qdrant storage with `user_id` and `source_id` metadata filters
@@ -17,6 +18,7 @@ This directory contains ingestion and retrieval utilities used by the backend.
 	- `cli/ingest_website.py`
 	- `cli/ingest_github.py`
 	- `cli/ingest_youtube.py`
+	- `cli/ingest_reddit.py`
 	- `cli/query_context.py`
 
 ## Setup
@@ -76,6 +78,16 @@ python cli/ingest_youtube.py \
 	https://www.youtube.com/watch?v=VIDEO_ID \
 	--source-id source-123 \
 	--user-id user-123
+
+Ingest Reddit Posts:
+
+```bash
+python cli/ingest_reddit.py \
+	machinelearning \
+	--query transformers \
+	--source-id source-123 \
+	--user-id user-123
+```
 ```
 
 Query Context:
@@ -109,4 +121,12 @@ Ingest a YouTube video:
 curl -X POST http://localhost:8001/ingest/youtube \
 	-H "Content-Type: application/json" \
 	-d '{"url":"https://www.youtube.com/watch?v=VIDEO_ID"}'
+
+Ingest Reddit posts:
+
+```bash
+curl -X POST http://localhost:8001/ingest/reddit \
+	-H "Content-Type: application/json" \
+	-d '{"subreddit":"machinelearning","query":"transformers"}'
+```
 ```

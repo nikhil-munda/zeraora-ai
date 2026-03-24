@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Globe, Github, MoreVertical, Search } from 'lucide-react';
+import { FileText, Globe, Github, MoreVertical, Search, MessageCircle } from 'lucide-react';
 
 export interface SourceData {
   _id: string;
@@ -20,6 +20,7 @@ const getIconForType = (type: string) => {
      case 'pdf': return <FileText className="w-4 h-4 text-violet-400" />;
      case 'website': return <Globe className="w-4 h-4 text-blue-400" />;
      case 'github': return <Github className="w-4 h-4 text-slate-400" />;
+     case 'reddit': return <MessageCircle className="w-4 h-4 text-orange-400" />;
      default: return <FileText className="w-4 h-4 text-muted-foreground" />;
    }
 }

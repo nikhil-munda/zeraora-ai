@@ -3,9 +3,43 @@ import Source from '../models/Source';
 import {
   ingestGithubWithPython,
   ingestPdfWithPython,
+  ingestRedditWithPython,
   ingestWebsiteWithPython,
   ingestYoutubeWithPython,
 } from '../services/pythonBridgeService';
+
+function extractSubredditFromInput(rawInput: string): string {
+  const trimmed = rawInput.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(trimmed);
+    } catch {
+      return '';
+    }
+
+    const host = parsedUrl.hostname.toLowerCase();
+    const isRedditHost = host === 'reddit.com' || host === 'www.reddit.com' || host.endsWith('.reddit.com');
+    if (!isRedditHost) {
+      return '';
+    }
+
+    const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+    const subredditIndex = pathParts.findIndex((part) => part.toLowerCase() === 'r');
+    if (subredditIndex === -1 || !pathParts[subredditIndex + 1]) {
+      return '';
+    }
+
+    return pathParts[subredditIndex + 1].trim();
+  }
+
+  const withoutPrefix = trimmed.toLowerCase().startsWith('r/') ? trimmed.slice(2) : trimmed;
+  return withoutPrefix.trim();
+}
 
 export const uploadPdf = async (req: Request, res: Response) => {
   try {
@@ -256,6 +290,69 @@ export const ingestYoutube = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error('Error ingesting YouTube video:', error);
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Server error',
+    });
+  }
+};
+
+export const ingestReddit = async (req: Request, res: Response) => {
+  try {
+    const subredditInput = typeof req.body?.subreddit === 'string' ? req.body.subreddit.trim() : '';
+    const redditUrlInput = typeof req.body?.url === 'string' ? req.body.url.trim() : '';
+    const query = typeof req.body?.query === 'string' ? req.body.query.trim() : '';
+
+    const inputValue = redditUrlInput || subredditInput;
+    const parsedSubreddit = extractSubredditFromInput(inputValue);
+    if (!parsedSubreddit) {
+      return res.status(400).json({
+        success: false,
+        message: 'Provide a valid Reddit URL (https://www.reddit.com/r/<subreddit>/...) or subreddit name',
+      });
+    }
+
+    if (!req.user || !req.user.sub) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const normalizedSubreddit = parsedSubreddit;
+    const baseSourceName = redditUrlInput || `r/${normalizedSubreddit}`;
+    const sourceName = query ? `${baseSourceName} (${query})` : baseSourceName;
+
+    const newSource = new Source({
+      name: sourceName,
+      type: 'reddit',
+      status: 'processing',
+      userId: req.user.sub,
+    });
+
+    await newSource.save();
+
+    try {
+      const ingestionResult = await ingestRedditWithPython({
+        subreddit: normalizedSubreddit,
+        query: query || undefined,
+        sourceId: newSource._id.toString(),
+        userId: req.user.sub,
+      });
+
+      newSource.status = 'indexed';
+      await newSource.save();
+
+      res.status(201).json({
+        success: true,
+        source: newSource,
+        ingestion: ingestionResult,
+      });
+      return;
+    } catch (error) {
+      newSource.status = 'failed';
+      await newSource.save();
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error ingesting Reddit posts:', error);
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : 'Server error',

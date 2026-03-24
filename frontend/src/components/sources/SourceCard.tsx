@@ -19,14 +19,18 @@ export function SourceCard({ title, description, icon, onSuccess }: SourceCardPr
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [repoUrl, setRepoUrl] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [redditInput, setRedditInput] = useState('');
+  const [redditQuery, setRedditQuery] = useState('');
   const [isWebsiteFormOpen, setIsWebsiteFormOpen] = useState(false);
   const [isGithubFormOpen, setIsGithubFormOpen] = useState(false);
   const [isYoutubeFormOpen, setIsYoutubeFormOpen] = useState(false);
+  const [isRedditFormOpen, setIsRedditFormOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isPdfSource = title === 'Upload PDF';
   const isWebsiteSource = title === 'Website';
   const isGithubSource = title === 'GitHub Repository';
   const isYoutubeSource = title === 'YouTube Video';
+  const isRedditSource = title === 'Reddit';
 
   const handleCardClick = () => {
     if (isPdfSource && fileInputRef.current) {
@@ -37,6 +41,8 @@ export function SourceCard({ title, description, icon, onSuccess }: SourceCardPr
       setIsGithubFormOpen((value) => !value);
     } else if (isYoutubeSource) {
       setIsYoutubeFormOpen((value) => !value);
+    } else if (isRedditSource) {
+      setIsRedditFormOpen((value) => !value);
     } else {
       // Future handler for websites, github, etc
       alert(`${title} integration coming soon!`);
@@ -184,6 +190,64 @@ export function SourceCard({ title, description, icon, onSuccess }: SourceCardPr
     }
   };
 
+  const handleRedditSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const trimmedRedditInput = redditInput.trim();
+    const trimmedQuery = redditQuery.trim();
+
+    if (!trimmedRedditInput) {
+      alert('Please enter a Reddit link.');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const token = getToken();
+      if (!token) {
+        throw new Error('You must be logged in to add a source');
+      }
+
+      const isLink = /^https?:\/\//i.test(trimmedRedditInput);
+      const payload: { subreddit?: string; url?: string; query?: string } = isLink
+        ? { url: trimmedRedditInput }
+        : { subreddit: trimmedRedditInput };
+      if (trimmedQuery) {
+        payload.query = trimmedQuery;
+      }
+
+      const res = await fetch(`${API_URL}/sources/reddit`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Error indexing Reddit source');
+      }
+
+      setUploadSuccess(true);
+      setRedditInput('');
+      setRedditQuery('');
+      setIsRedditFormOpen(false);
+      setTimeout(() => setUploadSuccess(false), 3000);
+      if (onSuccess) onSuccess();
+    } catch (err: unknown) {
+      console.error(err);
+      if (err instanceof Error) {
+        alert(err.message || 'An error occurred while indexing the Reddit source.');
+      } else {
+        alert('An unknown error occurred.');
+      }
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -319,6 +383,33 @@ export function SourceCard({ title, description, icon, onSuccess }: SourceCardPr
             </button>
           </form>
         )}
+        {isRedditSource && isRedditFormOpen && (
+          <form onSubmit={handleRedditSubmit} className="mb-3 space-y-3">
+            <input
+              type="url"
+              value={redditInput}
+              onChange={(e) => setRedditInput(e.target.value)}
+              placeholder="https://www.reddit.com/r/machinelearning/"
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-violet-500/50"
+              disabled={isUploading}
+            />
+            <input
+              type="text"
+              value={redditQuery}
+              onChange={(e) => setRedditQuery(e.target.value)}
+              placeholder="transformers (optional)"
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-violet-500/50"
+              disabled={isUploading}
+            />
+            <button
+              type="submit"
+              disabled={isUploading}
+              className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-violet-600 hover:bg-violet-500 border border-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isUploading ? 'Indexing subreddit...' : 'Index Subreddit'}
+            </button>
+          </form>
+        )}
         {uploadSuccess && (
           <div className="mb-3 flex items-center gap-2 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2">
             <CheckCircle className="w-4 h-4 shrink-0" />
@@ -343,7 +434,8 @@ export function SourceCard({ title, description, icon, onSuccess }: SourceCardPr
           ) : (
             (isWebsiteSource && isWebsiteFormOpen) ||
             (isGithubSource && isGithubFormOpen) ||
-            (isYoutubeSource && isYoutubeFormOpen)
+            (isYoutubeSource && isYoutubeFormOpen) ||
+            (isRedditSource && isRedditFormOpen)
               ? 'Close'
               : 'Add Source'
           )}

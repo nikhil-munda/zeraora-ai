@@ -10,7 +10,7 @@ export interface ISource extends Document {
 
 const SourceSchema: Schema = new Schema({
   name: { type: String, required: true },
-  type: { type: String, required: true, enum: ['pdf', 'website', 'github', 'youtube', 'arxiv'] },
+  type: { type: String, required: true, enum: ['pdf', 'website', 'github', 'youtube', 'reddit', 'arxiv'] },
   status: { type: String, required: true, default: 'processing', enum: ['processing', 'indexed', 'failed'] },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now },

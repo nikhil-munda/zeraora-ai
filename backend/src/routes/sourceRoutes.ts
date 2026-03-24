@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { uploadPdf, getSources, ingestWebsite, ingestGithub, ingestYoutube } from '../controllers/sourceController';
+import { uploadPdf, getSources, ingestWebsite, ingestGithub, ingestYoutube, ingestReddit } from '../controllers/sourceController';
 import { authMiddleware } from '../middleware/authMiddleware';
 import path from 'path';
 import fs from 'fs';
@@ -44,6 +44,7 @@ router.get('/', getSources);
 router.post('/website', ingestWebsite);
 router.post('/github', ingestGithub);
 router.post('/youtube', ingestYoutube);
+router.post('/reddit', ingestReddit);
 // Request `multipart/form-data` containing key `file`
 router.post('/pdf', upload.single('file'), uploadPdf);
 
